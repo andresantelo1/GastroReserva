@@ -1,0 +1,30 @@
+Contexto:
+GastroReserva estará orientado a restaurantes medianos que necesitan centralizar su operación de reservas y atención de salón.
+Problema:
+La combinación de llamadas, papel y mensajería dificulta conocer la disponibilidad real de mesas, controlar reservas y realizar seguimiento de los pedidos y estados de atención.
+Objetivo del producto:
+Proporcionar una plataforma web y móvil que permita gestionar el ciclo completo de una visita, desde la reserva hasta el feedback del cliente.
+Actores detallados:  
+Administrador: configura usuarios, catálogos y parámetros y supervisa la operación.
+Host/Recepción: administra reservas, realiza check-in y asigna mesas.
+Mesero: consulta mesas asignadas, gestiona pedidos y actualiza estados.
+Cliente: consulta horarios, realiza/cancela reservas y registra feedback.
+Alcance del MVP:  
+Autenticación y roles.
+Gestión de clientes.
+Gestión de zonas y mesas.
+Gestión de turnos y capacidad.
+Creación y cancelación de reservas.
+Prevención de reservas sin capacidad o solapadas.
+Check-in y asignación de mesas.
+Carta básica.
+Gestión de pedidos.
+Estados de atención.
+Feedback.
+Indicadores de ocupación y no-show.
+Web administrativa y operativa.
+Aplicación móvil para cliente y mesero.
+Criterio de éxito:
+Demostrar de extremo a extremo el flujo:
+Consulta de horario → reserva → check-in → asignación de mesa → pedido → actualización de estado → finalización → feedback.
+Además, las operaciones críticas deben respetar las reglas de negocio y contar con pruebas de éxito y error.

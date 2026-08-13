@@ -1,0 +1,45 @@
+P0 = imprescindible para el MVP, P1 = importante y P2 = complementario.
+
+
+
+
+P0 — Autenticación
+Como usuario, quiero iniciar sesión para acceder únicamente a las funciones correspondientes a mi rol.
+P0 — Consultar disponibilidad
+Como cliente, quiero consultar horarios y disponibilidad para saber cuándo puedo realizar una reserva.
+P0 — Crear reserva
+Como cliente, quiero realizar una reserva indicando horario y cantidad de personas para asegurar mi lugar en el restaurante.
+P0 — Validar capacidad
+Como cliente, quiero que el sistema valide la capacidad disponible para evitar crear una reserva que el restaurante no pueda atender.
+P0 — Evitar solapamientos
+Como host, quiero que el sistema detecte reservas solapadas para evitar asignar una misma mesa simultáneamente.
+P0 — Gestionar mesas
+Como administrador, quiero crear y actualizar mesas y zonas para representar la distribución del restaurante.
+P0 — Gestionar turnos
+Como administrador, quiero configurar turnos y capacidades para controlar los horarios disponibles para reservas.
+P0 — Check-in
+Como host, quiero registrar la llegada del cliente para iniciar formalmente su atención.
+P0 — Asignar mesa
+Como host, quiero asignar una mesa disponible a una reserva para ubicar al cliente.
+P0 — Crear pedido
+Como mesero, quiero registrar los productos solicitados por una mesa para gestionar su consumo.
+P0 — Actualizar pedido
+Como mesero, quiero actualizar el estado del pedido desde el móvil para mantener el seguimiento de la atención.
+P0 — Calcular total
+Como mesero, quiero que el sistema calcule correctamente el total del pedido conservando el precio histórico de cada producto.
+P1 — Cancelar reserva
+Como cliente, quiero cancelar una reserva para liberar la capacidad que ya no utilizaré.
+P1 — Mis reservas
+Como cliente, quiero consultar mis reservas para conocer su fecha, horario y estado.
+P1 — Carta
+Como cliente, quiero consultar la carta y disponibilidad de productos para conocer las opciones ofrecidas por el restaurante.
+P1 — Historial de reserva
+Como administrador, quiero consultar los cambios de una reserva para conocer su trazabilidad.
+P1 — Ocupación
+Como administrador, quiero consultar indicadores de ocupación para analizar el uso de mesas y capacidad.
+P1 — No-show
+Como administrador, quiero consultar indicadores de no-show para conocer cuántos clientes no se presentan a sus reservas.
+P1 — Feedback
+Como cliente, quiero registrar una valoración después de finalizar mi visita para compartir mi experiencia.
+P2 — Análisis con IA
+Como administrador, quiero visualizar los comentarios clasificados por tema y sentimiento para identificar tendencias en la experiencia de los clientes.
