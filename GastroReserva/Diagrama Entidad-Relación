@@ -1,0 +1,14 @@
+Cliente 1:N Reserva
+Zona 1:N Mesa
+Turno 1:N Reserva
+Reserva N:M Mesa
+Reserva 1:N HistorialReserva
+Reserva 1:N Pedido
+Pedido 1:N ItemPedido
+ProductoMenu 1:N ItemPedido
+EstadoPedido 1:N Pedido
+Cliente 1:N Feedback
+Reserva 1:0..1 Feedback
+relaciones N:M
+Reserva ↔ Mesa
+Pedido ↔ ProductoMenu
