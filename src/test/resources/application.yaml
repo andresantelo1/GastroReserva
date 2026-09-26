@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:gastroreserva;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+
+  main:
+    banner-mode: off
+
+logging:
+  level:
+    root: WARN
+
+app:
+  security:
+    jwt:
+      secret: test-secret-for-gastroreserva-with-at-least-32-characters
+      expiration-seconds: 3600
+      issuer: gastroreserva-test
+  bootstrap:
+    admin:
+      nombre: ""
+      email: ""
+      password: ""

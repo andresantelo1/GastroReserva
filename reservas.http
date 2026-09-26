@@ -1,0 +1,88 @@
+@baseUrl = http://localhost:8080
+@fechaReserva = 2026-12-20
+@turnoId = 1
+@mesaId = 1
+@mesaNuevaId = 2
+@clienteId = 1
+@reservaId = 1
+
+### Consultar disponibilidad (cualquier usuario autenticado)
+GET {{baseUrl}}/api/disponibilidad?fecha={{fechaReserva}}&turnoId={{turnoId}}&cantidadPersonas=4
+Authorization: Bearer {{client_token}}
+
+### Consultar disponibilidad dentro de una zona
+GET {{baseUrl}}/api/disponibilidad?fecha={{fechaReserva}}&turnoId={{turnoId}}&cantidadPersonas=4&zonaId=1
+Authorization: Bearer {{client_token}}
+
+### Crear una reserva propia (sólo CLIENTE)
+POST {{baseUrl}}/api/reservas
+Authorization: Bearer {{client_token}}
+Content-Type: application/json
+
+{
+  "fecha": "{{fechaReserva}}",
+  "turnoId": {{turnoId}},
+  "mesaId": {{mesaId}},
+  "cantidadPersonas": 4,
+  "observaciones": "Preferencia por una mesa tranquila"
+}
+
+### Listar las reservas del cliente autenticado
+GET {{baseUrl}}/api/reservas/mias?fechaDesde=2026-01-01&estado=SOLICITADA
+Authorization: Bearer {{client_token}}
+
+### Cancelar una reserva propia solicitada o confirmada
+PATCH {{baseUrl}}/api/reservas/{{reservaId}}/cancelar
+Authorization: Bearer {{client_token}}
+
+### Crear una reserva registrada por recepción (ADMINISTRADOR o HOST)
+POST {{baseUrl}}/api/reservas/operativas
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "clienteId": {{clienteId}},
+  "fecha": "{{fechaReserva}}",
+  "turnoId": {{turnoId}},
+  "mesaId": {{mesaId}},
+  "cantidadPersonas": 2,
+  "observaciones": "Reserva telefónica"
+}
+
+### Agenda operativa filtrada (ADMINISTRADOR, HOST o MESERO)
+GET {{baseUrl}}/api/reservas?fechaDesde=2026-12-01&fechaHasta=2026-12-31&estado=SOLICITADA
+Authorization: Bearer {{auth_token}}
+
+### Confirmar una reserva mediante una transición válida
+PATCH {{baseUrl}}/api/reservas/{{reservaId}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "estado": "CONFIRMADA",
+  "motivo": "Confirmada por recepción"
+}
+
+### Realizar check-in conservando la mesa (ADMINISTRADOR o HOST)
+PATCH {{baseUrl}}/api/reservas/{{reservaId}}/check-in
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "mesaId": {{mesaId}},
+  "motivo": "Cliente recibido por recepción"
+}
+
+### Reasignar una reserva confirmada o sentada (ADMINISTRADOR o HOST)
+PATCH {{baseUrl}}/api/reservas/{{reservaId}}/mesa
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "mesaId": {{mesaNuevaId}},
+  "motivo": "Cliente solicita una ubicación más tranquila"
+}
+
+### Consultar la auditoría de estados, check-in y mesas
+GET {{baseUrl}}/api/reservas/{{reservaId}}/historial
+Authorization: Bearer {{auth_token}}

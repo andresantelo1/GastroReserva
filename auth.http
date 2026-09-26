@@ -1,0 +1,37 @@
+@baseUrl = http://localhost:8080
+@adminEmail = admin@gastroreserva.local
+@adminPassword = Antelo26
+
+### Iniciar sesión como administrador y guardar el JWT para los demás archivos .http
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+> {%
+    if (response.status === 200) {
+        client.global.set("auth_token", response.body.accessToken);
+    }
+%}
+
+### Registrar un cliente (crea la cuenta y su perfil; nunca permite elegir un rol privilegiado)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Hansolo0606",
+  "email": "nicorojasp0606@gmail.com",
+  "password": "hansolito666"
+}
+
+### Ejemplo de credenciales incorrectas (401 Unauthorized)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "no-existe@example.com",
+  "password": "Password-incorrecta"
+}

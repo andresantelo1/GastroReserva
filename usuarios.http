@@ -1,0 +1,42 @@
+@baseUrl = http://localhost:8080
+
+### Listar usuarios (sólo ADMINISTRADOR)
+GET {{baseUrl}}/api/usuarios
+Authorization: Bearer {{auth_token}}
+
+### Filtrar usuarios activos por rol y correo
+GET {{baseUrl}}/api/usuarios?rol=HOST&activo=true&email=host
+Authorization: Bearer {{auth_token}}
+
+### Crear un usuario host
+POST {{baseUrl}}/api/usuarios
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Recepción",
+  "email": "host@gastroreserva.local",
+  "password": "Password-segura-123",
+  "rol": "HOST"
+}
+
+### Actualizar usuario, rol y estado
+PUT {{baseUrl}}/api/usuarios/2
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Recepción principal",
+  "email": "host@gastroreserva.local",
+  "rol": "HOST",
+  "activo": true
+}
+
+### Cambiar contraseña
+PATCH {{baseUrl}}/api/usuarios/2/password
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "password": "Nueva-password-segura-123"
+}

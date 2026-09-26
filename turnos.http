@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:8080
+
+### Crear un turno (sólo ADMINISTRADOR)
+POST {{baseUrl}}/api/turnos
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Almuerzo",
+  "horaInicio": "12:00:00",
+  "horaFin": "15:30:00",
+  "capacidadMaxima": 40
+}
+
+### Listar turnos activos (ADMINISTRADOR, HOST o MESERO)
+GET {{baseUrl}}/api/turnos?activo=true
+Authorization: Bearer {{auth_token}}
+
+### Filtrar turnos por nombre
+GET {{baseUrl}}/api/turnos?nombre=almuerzo
+Authorization: Bearer {{auth_token}}
+
+### Consultar un turno por id
+GET {{baseUrl}}/api/turnos/1
+Authorization: Bearer {{auth_token}}
+
+### Actualizar horario, capacidad y estado (sólo ADMINISTRADOR)
+PUT {{baseUrl}}/api/turnos/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Almuerzo principal",
+  "horaInicio": "11:30:00",
+  "horaFin": "16:00:00",
+  "capacidadMaxima": 50,
+  "activo": true
+}
+
+### Regla de negocio: inicio y fin iguales producen 422
+POST {{baseUrl}}/api/turnos
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Turno inválido",
+  "horaInicio": "12:00:00",
+  "horaFin": "12:00:00",
+  "capacidadMaxima": 10
+}

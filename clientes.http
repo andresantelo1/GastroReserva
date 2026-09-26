@@ -1,0 +1,59 @@
+@baseUrl = http://localhost:8080
+@clientEmail = nicorojasp0606@gmail.com
+@clientPassword = hansolito666
+
+### Iniciar sesión como cliente y guardar su JWT
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{clientEmail}}",
+  "password": "{{clientPassword}}"
+}
+
+> {%
+    if (response.status === 200) {
+        client.global.set("client_token", response.body.accessToken);
+    }
+%}
+
+### Consultar el perfil propio (sólo CLIENTE)
+GET {{baseUrl}}/api/clientes/me
+Authorization: Bearer {{client_token}}
+
+### Actualizar nombre y teléfono del perfil propio
+PUT {{baseUrl}}/api/clientes/me
+Authorization: Bearer {{client_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Nicolas Rojas",
+  "telefono": "+591 68809234"
+}
+
+### Listar clientes activos por nombre/correo (ADMINISTRADOR o HOST)
+GET {{baseUrl}}/api/clientes?activo=true&nombre=cliente&email=example.com
+Authorization: Bearer {{auth_token}}
+
+### Crear un cliente presencial sin cuenta de acceso (ADMINISTRADOR o HOST)
+POST {{baseUrl}}/api/clientes
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Cliente presencial",
+  "email": "presencial@example.com",
+  "telefono": "70000001"
+}
+
+### Actualizar un cliente por id (ADMINISTRADOR o HOST)
+PUT {{baseUrl}}/api/clientes/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Cliente actualizado por recepción",
+  "email": "cliente@example.com",
+  "telefono": "70000002",
+  "activo": true
+}
