@@ -1,0 +1,19 @@
+Cliente: persona que realiza una reserva o recibe atención en el restaurante.
+Zona: sector físico del restaurante que agrupa mesas.
+Mesa: espacio físico con una capacidad determinada de clientes.
+Turno: intervalo de atención con horarios y capacidad definidos.
+Reserva: solicitud de una mesa para una fecha, hora y cantidad de personas.
+Capacidad: cantidad máxima de personas que una mesa o turno puede admitir.
+Solapamiento: conflicto producido cuando una mesa posee reservas coincidentes en un mismo intervalo.
+Check-in: registro de la llegada de un cliente con reserva.
+Asignación: asociación de una mesa disponible con una reserva.
+Reasignación: cambio de la mesa asignada originalmente, conservando trazabilidad.
+Carta: catálogo básico de productos disponibles para solicitar.
+ProductoMenu: producto ofrecido por el restaurante con nombre, precio y disponibilidad.
+Pedido: conjunto de productos solicitados durante una visita.
+ItemPedido: producto y cantidad específicos pertenecientes a un pedido.
+EstadoPedido: situación actual de un pedido durante su atención.
+HistorialReserva: registro de cambios realizados sobre una reserva.
+No-show: reserva en la que el cliente no se presentó.
+Feedback: valoración o comentario registrado por el cliente después de finalizar su visita.
+Ocupación: indicador de utilización de la capacidad disponible del restaurante.
