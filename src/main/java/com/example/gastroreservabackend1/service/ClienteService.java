@@ -98,6 +98,12 @@ public class ClienteService {
         return asegurarPerfilUsuario(usuario.getId(), request.telefono());
     }
 
+    /** Baja lógica: conserva la identidad, las reservas y la cuenta vinculada. */
+    @Transactional
+    public void desactivar(Long id) {
+        requireCliente(id).setActivo(false);
+    }
+
     @Transactional
     public ClienteResponse asegurarPerfilUsuario(Long usuarioId, String telefono) {
         return clienteRepository.findByUsuarioId(usuarioId)

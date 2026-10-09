@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:8080
-@adminEmail = admin@gastroreserva.local
-@adminPassword = Antelo26
+# Elegir Run with: local y configurar http-client.private.env.json (ver el .example).
+# No escribir contraseñas ni tokens reales en este archivo compartido.
 
 ### Iniciar sesión como administrador y guardar el JWT para los demás archivos .http
 POST {{baseUrl}}/api/auth/login
@@ -22,9 +22,9 @@ POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "nombre": "Hansolo0606",
-  "email": "nicorojasp0606@gmail.com",
-  "password": "hansolito666"
+  "nombre": "Cliente de prueba",
+  "email": "{{clientEmail}}",
+  "password": "{{clientPassword}}"
 }
 
 ### Ejemplo de credenciales incorrectas (401 Unauthorized)
@@ -33,5 +33,5 @@ Content-Type: application/json
 
 {
   "email": "no-existe@example.com",
-  "password": "Password-incorrecta"
+  "password": "incorrecta"
 }

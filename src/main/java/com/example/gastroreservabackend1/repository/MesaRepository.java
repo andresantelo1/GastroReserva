@@ -16,6 +16,19 @@ import java.util.Optional;
 
 public interface MesaRepository extends JpaRepository<Mesa, Long>, JpaSpecificationExecutor<Mesa> {
 
+    interface Ocupacion {
+        Long getActivas();
+        Long getOcupadas();
+    }
+
+    // Una sola lectura evita mezclar dos instantes mientras se modifica el salón.
+    @Query("""
+            select count(m) as activas,
+                   coalesce(sum(case when m.estado = 'OCUPADA' then 1 else 0 end), 0) as ocupadas
+            from Mesa m where m.activa = true and m.zona.activa = true
+            """)
+    Ocupacion contarOcupacion();
+
     boolean existsByNumero(Integer numero);
 
     boolean existsByNumeroAndIdNot(Integer numero, Long id);
@@ -31,6 +44,11 @@ public interface MesaRepository extends JpaRepository<Mesa, Long>, JpaSpecificat
               and z.activa = true
               and m.capacidad >= :personas
               and (:zonaId is null or z.id = :zonaId)
+              and not exists (
+                  select a.id from MesaAbierta a
+                  where a.mesa = m and a.mesaActivaId is not null
+                    and a.inicio < :fin and a.finPrevisto > :inicio
+              )
               and not exists (
                   select r.id from Reserva r
                   where r.mesa = m

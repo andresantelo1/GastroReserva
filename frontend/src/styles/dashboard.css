@@ -1,0 +1,16 @@
+.dashboard-data { margin-bottom: 2.5rem; }
+.dashboard-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.metric-helper { color: var(--color-muted); line-height: 1.5; margin-top: var(--space-3); }
+.dashboard-states { padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.dashboard-states dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); margin-bottom: 0; }
+.dashboard-states dl div { padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.dashboard-states dt { color: var(--color-muted); }
+.dashboard-states dd { margin: var(--space-2) 0 0; font-size: 1.5rem; color: var(--color-text); }
+.app-error { max-width: 700px; margin: 10vh auto; padding: var(--space-6); }
+.app-error a { display: inline-block; margin: var(--space-4); }
+@media (max-width: 1100px) { .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .dashboard-metrics { grid-template-columns: 1fr; }
+  .dashboard-states dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-data .section-heading { align-items: flex-start; flex-direction: column; gap: var(--space-3); }
+}

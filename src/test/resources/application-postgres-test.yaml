@@ -1,0 +1,7 @@
+# Sólo para una base de pruebas vacía y descartable. Nunca usar gastroreserva real.
+spring:
+  datasource:
+    url: ${TEST_DB_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${TEST_DB_USERNAME:gastro_test}
+    password: ${TEST_DB_PASSWORD:}

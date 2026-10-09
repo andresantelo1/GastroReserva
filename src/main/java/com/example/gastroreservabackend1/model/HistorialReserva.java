@@ -54,6 +54,20 @@ public class HistorialReserva {
     @JoinColumn(name = "mesa_nueva_id")
     private Mesa mesaNueva;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_anterior_id")
+    private Cliente clienteAnterior;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_nuevo_id")
+    private Cliente clienteNuevo;
+
+    @Column(name = "observaciones_anteriores", length = 500)
+    private String observacionesAnteriores;
+
+    @Column(name = "observaciones_nuevas", length = 500)
+    private String observacionesNuevas;
+
     @Column(name = "creado_en", nullable = false, updatable = false)
     private Instant creadoEn;
 
@@ -136,4 +150,13 @@ public class HistorialReserva {
     public Instant getCreadoEn() {
         return creadoEn;
     }
+
+    public Cliente getClienteAnterior() { return clienteAnterior; }
+    public void setClienteAnterior(Cliente cliente) { clienteAnterior = cliente; }
+    public Cliente getClienteNuevo() { return clienteNuevo; }
+    public void setClienteNuevo(Cliente cliente) { clienteNuevo = cliente; }
+    public String getObservacionesAnteriores() { return observacionesAnteriores; }
+    public void setObservacionesAnteriores(String text) { observacionesAnteriores = text; }
+    public String getObservacionesNuevas() { return observacionesNuevas; }
+    public void setObservacionesNuevas(String text) { observacionesNuevas = text; }
 }

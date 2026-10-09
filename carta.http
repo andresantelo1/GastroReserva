@@ -1,0 +1,121 @@
+@baseUrl = http://localhost:8080
+
+# Antes de empezar:
+# 1. Reiniciar el backend: Flyway agrega productos_menu con V6, sin borrar los datos existentes.
+# 2. Ejecutar el login de administrador en auth.http (guarda auth_token).
+# 3. Ejecutar el login de cliente en clientes.http (guarda client_token).
+# 4. Ejecutar estas solicitudes una por una, en orden. No hay que copiar tokens ni ids.
+# Son datos de prueba que quedan guardados en tu base local.
+
+### 1. Crear un producto (ADMINISTRADOR): 201 y guardar automáticamente su id
+POST {{baseUrl}}/api/productos-menu
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Hamburguesa de prueba",
+  "descripcion": "Hamburguesa con papas",
+  "precio": 35.50
+}
+
+> {%
+    client.test("Producto creado", function () { client.assert(response.status === 201); });
+    if (response.status === 201) {
+        client.global.set("producto_menu_id", response.body.id);
+    }
+%}
+
+### 2. Consultar la carta como CLIENTE: 200, incluye el producto disponible
+GET {{baseUrl}}/api/carta?nombre=Hamburguesa
+Authorization: Bearer {{client_token}}
+
+### 3. Consultar un producto de la carta: 200
+GET {{baseUrl}}/api/carta/{{producto_menu_id}}
+Authorization: Bearer {{client_token}}
+
+### 4. Listar el catálogo administrativo completo: 200
+GET {{baseUrl}}/api/productos-menu
+Authorization: Bearer {{auth_token}}
+
+### 5. Cambiar precio y marcar NO disponible (ADMINISTRADOR): 200
+PUT {{baseUrl}}/api/productos-menu/{{producto_menu_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Hamburguesa de prueba",
+  "descripcion": "Hamburguesa con papas",
+  "precio": 38.00,
+  "disponible": false
+}
+
+### 6. El cliente ya NO lo ve en la carta: 200, lista vacía si era la única coincidencia
+GET {{baseUrl}}/api/carta?nombre=Hamburguesa%20de%20prueba
+Authorization: Bearer {{client_token}}
+
+### 7. Tampoco puede consultar un producto no disponible por id: 404 (esperado)
+GET {{baseUrl}}/api/carta/{{producto_menu_id}}
+Authorization: Bearer {{client_token}}
+
+### 8. El administrador sí puede ver los productos no disponibles: 200
+GET {{baseUrl}}/api/productos-menu?disponible=false
+Authorization: Bearer {{auth_token}}
+
+### 9. Volver a ofrecer el producto, sin crear otro registro: 200
+PUT {{baseUrl}}/api/productos-menu/{{producto_menu_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Hamburguesa de prueba",
+  "descripcion": "Hamburguesa con papas",
+  "precio": 38.00,
+  "disponible": true
+}
+
+### 10. Nombre repetido, incluso con mayúsculas: 409 (esperado)
+POST {{baseUrl}}/api/productos-menu
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "HAMBURGUESA DE PRUEBA",
+  "precio": 35.50
+}
+
+### 11. Precio con más de dos decimales: 400 (esperado; no se redondea silenciosamente)
+POST {{baseUrl}}/api/productos-menu
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Producto inválido",
+  "precio": 12.345
+}
+
+### 12. Un CLIENTE no puede crear productos: 403 (esperado)
+POST {{baseUrl}}/api/productos-menu
+Authorization: Bearer {{client_token}}
+Content-Type: application/json
+
+{
+  "nombre": "No autorizado",
+  "precio": 10.00
+}
+
+### 13. Sin iniciar sesión: 401 (esperado)
+GET {{baseUrl}}/api/carta
+
+# Si repetís el paso 1 obtendrás 409 porque el producto ya existe.
+# Podés seguir con el id global guardado; si se perdió, consultá el catálogo con el administrador
+# y ejecutá esta solicitud para recuperarlo sin volver a crear el producto.
+### Recuperar el id del producto de prueba existente
+GET {{baseUrl}}/api/productos-menu?nombre=Hamburguesa%20de%20prueba
+Authorization: Bearer {{auth_token}}
+
+> {%
+    if (response.status === 200) {
+        const producto = response.body.find(p => p.nombre === "Hamburguesa de prueba");
+        if (producto) client.global.set("producto_menu_id", producto.id);
+    }
+%}

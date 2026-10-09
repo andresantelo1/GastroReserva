@@ -12,6 +12,7 @@ import com.example.gastroreservabackend1.model.Zona;
 import com.example.gastroreservabackend1.repository.MesaRepository;
 import com.example.gastroreservabackend1.repository.ZonaRepository;
 import com.example.gastroreservabackend1.repository.ReservaRepository;
+import com.example.gastroreservabackend1.repository.MesaAbiertaRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -28,13 +29,16 @@ public class MesaService {
     private final MesaRepository mesaRepository;
     private final ZonaRepository zonaRepository;
     private final ReservaRepository reservaRepository;
+    private final MesaAbiertaRepository mesaAbiertaRepository;
 
     public MesaService(MesaRepository mesaRepository,
                        ZonaRepository zonaRepository,
-                       ReservaRepository reservaRepository) {
+                       ReservaRepository reservaRepository,
+                       MesaAbiertaRepository mesaAbiertaRepository) {
         this.mesaRepository = mesaRepository;
         this.zonaRepository = zonaRepository;
         this.reservaRepository = reservaRepository;
+        this.mesaAbiertaRepository = mesaAbiertaRepository;
     }
 
     public List<MesaResponse> listar(Long zonaId, Boolean activa, Integer capacidadMinima, String estado) {
@@ -86,7 +90,11 @@ public class MesaService {
 
     @Transactional
     public MesaResponse actualizar(Long id, MesaUpdateRequest request) {
-        Mesa mesa = requireMesa(id);
+        Mesa mesa = mesaRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe la mesa con id " + id));
+        if (mesaAbiertaRepository.existsByMesaIdAndMesaActivaIdIsNotNullAndCantidadPersonasGreaterThan(id, request.capacidad())) {
+            throw new BusinessRuleException("La capacidad no puede ser menor que una atención abierta de la mesa");
+        }
         if (mesaRepository.existsByNumeroAndIdNot(request.numero(), id)) {
             throw new ResourceConflictException("Ya existe la mesa número " + request.numero());
         }

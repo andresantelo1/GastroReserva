@@ -27,6 +27,8 @@ import com.example.gastroreservabackend1.repository.MesaRepository;
 import com.example.gastroreservabackend1.repository.ReservaRepository;
 import com.example.gastroreservabackend1.repository.TurnoRepository;
 import com.example.gastroreservabackend1.repository.UsuarioRepository;
+import com.example.gastroreservabackend1.repository.PedidoRepository;
+import com.example.gastroreservabackend1.repository.MesaAbiertaRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -47,19 +49,25 @@ public class ReservaService {
     private final TurnoRepository turnoRepository;
     private final MesaRepository mesaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PedidoRepository pedidoRepository;
+    private final MesaAbiertaRepository mesaAbiertaRepository;
 
     public ReservaService(ReservaRepository reservaRepository,
                           HistorialReservaRepository historialRepository,
                           ClienteRepository clienteRepository,
                           TurnoRepository turnoRepository,
                           MesaRepository mesaRepository,
-                          UsuarioRepository usuarioRepository) {
+                          UsuarioRepository usuarioRepository,
+                          PedidoRepository pedidoRepository,
+                          MesaAbiertaRepository mesaAbiertaRepository) {
         this.reservaRepository = reservaRepository;
         this.historialRepository = historialRepository;
         this.clienteRepository = clienteRepository;
         this.turnoRepository = turnoRepository;
         this.mesaRepository = mesaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.pedidoRepository = pedidoRepository;
+        this.mesaAbiertaRepository = mesaAbiertaRepository;
     }
 
     public List<ReservaResponse> listar(LocalDate fechaDesde,
@@ -164,6 +172,9 @@ public class ReservaService {
         }
         if (reserva.getEstado() == EstadoReserva.SENTADA
                 && request.estado() == EstadoReserva.FINALIZADA) {
+            if (pedidoRepository.existsByReservaIdAndEstadoIn(id, PedidoService.ESTADOS_PENDIENTES)) {
+                throw new BusinessRuleException("Primero debe cerrar o cancelar el pedido pendiente");
+            }
             Mesa mesa = mesaRepository.findByIdForUpdate(reserva.getMesa().getId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "No existe la mesa con id " + reserva.getMesa().getId()));
@@ -282,6 +293,9 @@ public class ReservaService {
         }
 
         ReservaPolicy.Intervalo intervalo = ReservaPolicy.calcularIntervalo(fecha, turno);
+        if (mesaAbiertaRepository.existsSolapamiento(mesaId, intervalo.inicio(), intervalo.fin())) {
+            throw new BusinessRuleException("La mesa tiene una atención sin reserva en ese intervalo");
+        }
         if (reservaRepository.existsSolapamiento(
                 mesaId,
                 intervalo.inicio(),
@@ -385,6 +399,9 @@ public class ReservaService {
     }
 
     private void validarMesaDestino(Reserva reserva, Mesa mesa) {
+        if (mesaAbiertaRepository.existsSolapamiento(mesa.getId(), reserva.getInicio(), reserva.getFin())) {
+            throw new BusinessRuleException("La mesa nueva tiene una atención sin reserva en ese intervalo");
+        }
         if (!mesa.isActiva() || !mesa.getZona().isActiva()) {
             throw new BusinessRuleException("La mesa nueva o su zona no están activas");
         }
@@ -496,7 +513,8 @@ public class ReservaService {
                 reserva.getObservaciones(),
                 reserva.getCreadoPor().getId(),
                 reserva.getCreadoEn(),
-                reserva.getActualizadoEn()
+                reserva.getActualizadoEn(),
+                reserva.getVersion()
         );
     }
 
@@ -511,7 +529,11 @@ public class ReservaService {
                 toMesaSummary(historial.getMesaNueva()),
                 historial.getCambiadoPor().getId(),
                 historial.getCambiadoPor().getNombre(),
-                historial.getCreadoEn()
+                historial.getCreadoEn(),
+                historial.getClienteAnterior() == null ? null : historial.getClienteAnterior().getId(),
+                historial.getClienteNuevo() == null ? null : historial.getClienteNuevo().getId(),
+                historial.getObservacionesAnteriores(),
+                historial.getObservacionesNuevas()
         );
     }
 

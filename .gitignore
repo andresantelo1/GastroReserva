@@ -36,6 +36,14 @@ build/
 .env
 .env.*
 !.env.example
+http-client.private.env.json
+*.local.http
+http-client.env.json
+
+### Local generated artifacts ###
+/tmp/
+node_modules/
+coverage/
 
 ### Local Maven repository (sandbox/CI overrides) ###
 .mvn-local/

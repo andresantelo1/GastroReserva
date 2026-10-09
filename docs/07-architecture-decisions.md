@@ -59,7 +59,7 @@ Estados principales: `400`, `401`, `403`, `404`, `409` y `422`.
 **Estado:** implementada parcialmente.  
 **Decisión:** PostgreSQL es la base obligatoria; Flyway es el único mecanismo de evolución y Hibernate valida con `ddl-auto=validate`.
 
-H2 se usa exclusivamente en pruebas efímeras con compatibilidad PostgreSQL; no sustituye la base de producción.
+H2 se usa exclusivamente en pruebas efímeras con compatibilidad PostgreSQL; no sustituye la base de producción. `scripts/verify-postgres.ps1` verifica V1–V8 y actualización V5→V8 en una instancia PostgreSQL temporal separada. No usa Docker ni modifica la base habitual.
 
 ## ADR-005 — Autenticación stateless y rol vigente
 
@@ -73,16 +73,16 @@ Los secretos se proporcionan mediante variables de entorno y nunca se versionan.
 **Estado:** implementada.  
 **Decisión:** bloquear pesimistamente turno y mesa durante la creación, consultar conflictos por intervalo y usar versión optimista para cambios de la reserva.
 
-Esto protege capacidad agregada y solapamientos incluso cuando dos solicitudes llegan casi simultáneamente.
+Esto protege capacidad agregada y solapamientos incluso cuando dos solicitudes llegan casi simultáneamente. Pedido bloquea primero origen (reserva/apertura) y luego pedido, con el mismo origen bloqueado al finalizar visita. La unicidad también está restringida en V7/V8. Las pruebas de concurrencia usan dos hilos y transacciones confirmadas en H2 y PostgreSQL temporal.
 
 ## ADR-007 — Auditoría de procesos
 
-**Estado:** implementada para reservas; pendiente en futuros pedidos.  
-**Decisión:** creación, cambios de estado, check-in y reasignación generan eventos persistidos con tipo, estado anterior/nuevo, motivo, usuario y fecha. Cuando corresponde también conservan mesa anterior y nueva. El patrón se extenderá a estados de pedido.
+**Estado:** implementada para reservas y pedidos.
+**Decisión:** creación, cambios de estado, check-in y reasignación generan eventos persistidos con tipo, estado anterior/nuevo, motivo, usuario y fecha. Cuando corresponde también conservan mesa anterior y nueva. Pedidos registra además cambios de ítems y responsable, con actor y fecha.
 
 ## ADR-008 — Estrategia de Git y ramas
 
-**Estado:** propuesta; la carpeta todavía no contiene `.git`.
+**Estado:** Git inicializado y con historial en `main`; el siguiente flujo de ramas sigue siendo la estrategia propuesta, no una afirmación de que todas esas ramas ya existan.
 
 ### Ramas
 

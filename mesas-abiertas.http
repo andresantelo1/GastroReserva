@@ -1,0 +1,47 @@
+@baseUrl = http://localhost:8080
+# Primero ejecutar recorrido-backend.http hasta finalizar la visita.
+# Reutiliza demo_mesa ya liberada. Estos ejemplos modifican datos cuando se ejecutan.
+
+### Abrir una atención presencial sin reserva; hora local del restaurante
+< {%
+    const fin = new Date(Date.now() + 60 * 60 * 1000);
+    const parts = new Intl.DateTimeFormat("en-CA", {timeZone: "America/La_Paz", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"}).formatToParts(fin);
+    const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    request.variables.set("finDemo", p.year + "-" + p.month + "-" + p.day + "T" + p.hour + ":" + p.minute + ":" + p.second);
+%}
+POST {{baseUrl}}/api/mesas-abiertas
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"mesaId":{{demo_mesa}},"cantidadPersonas":2,"finPrevisto":"{{finDemo}}"}
+
+> {%
+    client.test("Mesa abierta", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_apertura", response.body.id);
+%}
+
+### Crear pedido sin reserva (uno por atención)
+POST {{baseUrl}}/api/pedidos
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"mesaAbiertaId":{{demo_apertura}}}
+
+> {%
+    if (response.status === 201) client.global.set("demo_pedido_abierto", response.body.id);
+%}
+
+### Cancelar el pedido vacío con motivo, por ejemplo si el grupo decide irse
+PATCH {{baseUrl}}/api/pedidos/{{demo_pedido_abierto}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"CANCELADO","motivo":"El grupo se retiró sin consumir"}
+
+### Finalizar atención y liberar la mesa
+PATCH {{baseUrl}}/api/mesas-abiertas/{{demo_apertura}}/finalizar
+Authorization: Bearer {{auth_token}}
+
+### Consultar atenciones anteriores
+GET {{baseUrl}}/api/mesas-abiertas?abierta=false&mesaId={{demo_mesa}}
+Authorization: Bearer {{auth_token}}

@@ -1,0 +1,202 @@
+@baseUrl = http://localhost:8080
+
+# Preparación: login administrador en auth.http y login cliente en clientes.http.
+# Se usan auth_token y client_token; no pegue tokens ni contraseñas aquí.
+# Ejecute de arriba hacia abajo. CREA DATOS DE DEMOSTRACIÓN EN LA BASE ELEGIDA.
+# Cada recorrido usa nombres/numero nuevos y guarda automáticamente sus ids.
+
+### 1. Crear zona demo (administrador)
+< {%
+    const marca = Date.now();
+    client.global.set("demo_marca", String(marca));
+    client.global.set("demo_numero", Math.floor(marca / 1000));
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    client.global.set("demo_fecha", manana.getFullYear() + "-" + String(manana.getMonth() + 1).padStart(2, "0") + "-" + String(manana.getDate()).padStart(2, "0"));
+%}
+POST {{baseUrl}}/api/zonas
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"nombre":"Demo cierre {{demo_marca}}","descripcion":"Prueba del flujo completo"}
+
+> {%
+    client.test("Zona creada", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_zona", response.body.id);
+%}
+
+### 2. Crear mesa de cuatro personas
+POST {{baseUrl}}/api/mesas
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"numero":{{demo_numero}},"capacidad":4,"zonaId":{{demo_zona}}}
+
+> {%
+    client.test("Mesa creada", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_mesa", response.body.id);
+%}
+
+### 3. Crear turno
+POST {{baseUrl}}/api/turnos
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"nombre":"Demo {{demo_marca}}","horaInicio":"12:00:00","horaFin":"15:00:00","capacidadMaxima":20}
+
+> {%
+    client.test("Turno creado", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_turno", response.body.id);
+%}
+
+### 4. Crear producto a Bs 25
+POST {{baseUrl}}/api/productos-menu
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"nombre":"Plato demo {{demo_marca}}","descripcion":"Producto de prueba","precio":25.00}
+
+> {%
+    client.test("Producto creado", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_producto", response.body.id);
+%}
+
+### 5. Cliente consulta disponibilidad
+GET {{baseUrl}}/api/disponibilidad?fecha={{demo_fecha}}&turnoId={{demo_turno}}&cantidadPersonas=2&zonaId={{demo_zona}}
+Authorization: Bearer {{client_token}}
+
+### 6. Cliente reserva
+POST {{baseUrl}}/api/reservas
+Authorization: Bearer {{client_token}}
+Content-Type: application/json
+
+{"fecha":"{{demo_fecha}}","turnoId":{{demo_turno}},"mesaId":{{demo_mesa}},"cantidadPersonas":2}
+
+> {%
+    client.test("Reserva solicitada", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_reserva", response.body.id);
+%}
+
+### 7. Recepción confirma (también lo permite el administrador)
+PATCH {{baseUrl}}/api/reservas/{{demo_reserva}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"CONFIRMADA","motivo":"Demostración"}
+
+### 8. Check-in: comienza la visita y ocupa la mesa
+PATCH {{baseUrl}}/api/reservas/{{demo_reserva}}/check-in
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"mesaId":{{demo_mesa}}}
+
+### 9. Crear pedido (administrador o mesero; aquí administra el mismo usuario)
+POST {{baseUrl}}/api/pedidos
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"reservaId":{{demo_reserva}}}
+
+> {%
+    client.test("Pedido creado", () => client.assert(response.status === 201));
+    if (response.status === 201) client.global.set("demo_pedido", response.body.id);
+%}
+
+### 10. Dos platos: total esperado 50.00
+POST {{baseUrl}}/api/pedidos/{{demo_pedido}}/items
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"productoId":{{demo_producto}},"cantidad":2}
+
+> {%
+    client.test("Total correcto", () => client.assert(response.status === 200 && response.body.totalOperativo === 50));
+    if (response.status === 200) client.global.set("demo_item", response.body.items[0].id);
+%}
+
+### 11. Cambiar precio del catálogo: el pedido YA creado debe conservar Bs 25
+PUT {{baseUrl}}/api/productos-menu/{{demo_producto}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"nombre":"Plato demo {{demo_marca}}","precio":30.00,"disponible":true}
+
+### 12. Comprobar precio histórico: total sigue en 50.00
+GET {{baseUrl}}/api/pedidos/{{demo_pedido}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Precio histórico conservado", () => client.assert(response.status === 200 && response.body.totalOperativo === 50));
+%}
+
+### 13. Error esperado 422: no finalizar mientras el pedido está pendiente
+PATCH {{baseUrl}}/api/reservas/{{demo_reserva}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"FINALIZADA"}
+
+> {% client.test("Protege el pedido pendiente", () => client.assert(response.status === 422)); %}
+
+### 14. En preparación
+PATCH {{baseUrl}}/api/pedidos/{{demo_pedido}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"EN_PREPARACION"}
+
+### 15. Servido
+PATCH {{baseUrl}}/api/pedidos/{{demo_pedido}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"SERVIDO"}
+
+### 16. Cerrar pedido (no es un pago ni una factura)
+PATCH {{baseUrl}}/api/pedidos/{{demo_pedido}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"CERRADO"}
+
+### 17. Finalizar visita: libera mesa y habilita opinión
+PATCH {{baseUrl}}/api/reservas/{{demo_reserva}}/estado
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{"estado":"FINALIZADA","motivo":"Atención concluida"}
+
+### 18. Cliente deja su valoración
+POST {{baseUrl}}/api/feedback
+Authorization: Bearer {{client_token}}
+Content-Type: application/json
+
+{"reservaId":{{demo_reserva}},"puntuacion":5,"comentario":"Muy buena atención"}
+
+> {% client.test("Opinión creada", () => client.assert(response.status === 201)); %}
+
+### 19. Historial de pedido
+GET {{baseUrl}}/api/pedidos/{{demo_pedido}}/historial
+Authorization: Bearer {{auth_token}}
+
+### 20. Resumen de reservas de la fecha
+GET {{baseUrl}}/api/reportes/reservas?desde={{demo_fecha}}&hasta={{demo_fecha}}
+Authorization: Bearer {{auth_token}}
+
+### 21. Ocupación actual del salón (incluye otras mesas existentes)
+GET {{baseUrl}}/api/reportes/ocupacion-actual
+Authorization: Bearer {{auth_token}}
+
+### 22. Cambios de reservas del cliente, sin notas internas del personal
+GET {{baseUrl}}/api/notificaciones?despuesDeId=0&limite=50
+Authorization: Bearer {{client_token}}
+
+### 23. Error esperado 403: cliente no puede crear pedidos
+POST {{baseUrl}}/api/pedidos
+Authorization: Bearer {{client_token}}
+Content-Type: application/json
+
+{"reservaId":{{demo_reserva}}}
+
+> {% client.test("Rol protegido", () => client.assert(response.status === 403)); %}

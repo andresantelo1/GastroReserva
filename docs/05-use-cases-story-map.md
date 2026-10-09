@@ -61,13 +61,13 @@ flowchart LR
 | CU-08 | Consultar o cancelar reserva propia | Cliente | Reserva propia | RF-02, RF-08, RN-03 | Backend completo |
 | CU-09 | Gestionar agenda y estados | Administrador, host, mesero | Sesión operativa | RF-02, RF-04, RF-08, RN-03 | Backend completo |
 | CU-10 | Realizar check-in y asignar/reasignar | Host | Reserva confirmada y mesa disponible | RF-09, RF-17, RN-01, RN-02, RN-03, RN-08 | Backend completo |
-| CU-11 | Gestionar carta básica | Administrador | Sesión de administrador | RF-10 | Pendiente |
-| CU-12 | Consultar carta | Cliente, mesero | Sesión activa | RF-02, RF-10 | Pendiente |
-| CU-13 | Crear y modificar pedido | Mesero | Reserva sentada o mesa abierta | RF-11, RF-18, RN-04 a RN-06 | Pendiente |
-| CU-14 | Actualizar estado de atención | Mesero | Pedido/atención activa | RF-04, RF-12, RF-19 | Pendiente |
-| CU-15 | Finalizar visita | Mesero, host | Atención válida para finalizar | RF-04, RN-03, RN-07 | Pendiente |
-| CU-16 | Registrar feedback | Cliente | Reserva propia finalizada | RF-13, RN-07 | Pendiente |
-| CU-17 | Consultar ocupación y no-show | Administrador | Sesión de administrador | RF-14, RF-20 | Pendiente |
+| CU-11 | Gestionar carta básica | Administrador | Sesión de administrador | RF-10 | Backend completo; UI pendiente |
+| CU-12 | Consultar carta | Cliente, mesero | Sesión activa | RF-02, RF-10 | Backend completo; UI pendiente |
+| CU-13 | Crear y modificar pedido | Mesero | Reserva sentada o mesa abierta | RF-11, RF-18, RN-04 a RN-06 | Backend completo; UI pendiente |
+| CU-14 | Actualizar estado de atención | Mesero | Pedido/atención activa | RF-04, RF-12, RF-19 | Backend completo; UI pendiente |
+| CU-15 | Finalizar visita | Mesero, host | Atención válida para finalizar | RF-04, RN-03, RN-07 | Backend completo; UI pendiente |
+| CU-16 | Registrar feedback | Cliente | Reserva propia finalizada | RF-13, RN-07 | Backend completo; UI pendiente |
+| CU-17 | Consultar ocupación y no-show | Administrador | Sesión de administrador | RF-14, RF-20 | Backend completo; UI pendiente |
 | CU-18 | Consultar clasificación de comentarios | Administrador | Feedback existente; proveedor opcional | RNF-13 | Pendiente |
 
 ## CU-07 — Crear reserva
@@ -153,7 +153,7 @@ sequenceDiagram
     API->>DB: Valida visita finalizada y persiste
 ```
 
-El flujo funciona en backend hasta `confirmar → check-in/asignar o reasignar`. Pedidos, finalización integral con atención y feedback permanecen pendientes.
+El flujo crítico completo está implementado y probado en backend, incluido pedido, cierre de atención y feedback. La secuencia de arriba describe las futuras pantallas: todavía no se ejecutó desde aplicaciones web/móvil conectadas. Ver [09-backend-handoff.md](09-backend-handoff.md).
 
 ## Mapa de historias por actividad
 

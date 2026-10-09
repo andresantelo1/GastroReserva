@@ -19,6 +19,7 @@ public record ReservaResponse(
         String observaciones,
         Long creadoPorUsuarioId,
         Instant creadoEn,
-        Instant actualizadoEn
+        Instant actualizadoEn,
+        Long version
 ) {
 }

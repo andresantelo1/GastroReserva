@@ -52,6 +52,12 @@ public class AuthService {
         );
     }
 
+    public UsuarioResponse actual(String email) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).filter(Usuario::isActivo)
+                .orElseThrow(InvalidCredentialsException::new);
+        return usuarioService.toResponse(usuario);
+    }
+
     @Transactional
     public UsuarioResponse register(RegisterRequest request) {
         UsuarioResponse usuario = usuarioService.registrarCliente(request);

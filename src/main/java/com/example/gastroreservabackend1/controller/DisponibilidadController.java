@@ -2,6 +2,11 @@ package com.example.gastroreservabackend1.controller;
 
 import com.example.gastroreservabackend1.dto.reserva.DisponibilidadResponse;
 import com.example.gastroreservabackend1.service.DisponibilidadService;
+import com.example.gastroreservabackend1.service.TurnoService;
+import com.example.gastroreservabackend1.service.ZonaService;
+import com.example.gastroreservabackend1.dto.turno.TurnoResponse;
+import com.example.gastroreservabackend1.dto.zona.ZonaResponse;
+import java.util.List;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,10 +24,20 @@ import java.time.LocalDate;
 public class DisponibilidadController {
 
     private final DisponibilidadService disponibilidadService;
+    private final TurnoService turnos;
+    private final ZonaService zonas;
 
-    public DisponibilidadController(DisponibilidadService disponibilidadService) {
+    public DisponibilidadController(DisponibilidadService disponibilidadService, TurnoService turnos, ZonaService zonas) {
         this.disponibilidadService = disponibilidadService;
+        this.turnos = turnos;
+        this.zonas = zonas;
     }
+
+    @GetMapping("/turnos")
+    public List<TurnoResponse> turnos() { return turnos.listar(true, null); }
+
+    @GetMapping("/zonas")
+    public List<ZonaResponse> zonas() { return zonas.listar(true, null); }
 
     @GetMapping
     public DisponibilidadResponse consultar(

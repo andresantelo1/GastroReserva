@@ -73,9 +73,9 @@ Cliente consulta horario → reserva → host realiza check-in y asigna mesa
 
 El flujo será exitoso cuando use el mismo backend desde las experiencias correspondientes, respete permisos y reglas de negocio, persista los cambios y presente evidencia de resultados correctos y errores controlados.
 
-## Estado real al 2026-08-15
+## Estado real al 2026-10-08
 
-El backend cuenta con autenticación y roles, clientes, zonas, mesas, turnos, disponibilidad, reservas, cancelación, estados, check-in, reasignación e historial. Flyway mantiene cinco migraciones y la verificación automatizada finaliza con 38 pruebas sin fallos. Permanecen pendientes carta, pedidos, feedback, reportes, IA, web, móvil, Docker y GitHub Actions.
+El backend principal incluye autenticación, clientes, salón, turnos, reservas, check-in, reasignación, carta, mesa abierta, pedidos y atención, feedback y reportes. Flyway mantiene ocho migraciones y existen pruebas de servicio, permisos HTTP y concurrencia. IA, Docker y GitHub Actions se aplazan por decisión del usuario; las experiencias web/móvil siguen pendientes. La evidencia y las limitaciones se registran en la matriz de estado.
 
 La cobertura exacta y sus evidencias se mantienen en [PA-03-status.md](PA-03-status.md).
 

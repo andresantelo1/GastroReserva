@@ -15,6 +15,10 @@ public record HistorialReservaResponse(
         MesaReservaSummaryResponse mesaNueva,
         Long cambiadoPorUsuarioId,
         String cambiadoPorNombre,
-        Instant creadoEn
+        Instant creadoEn,
+        Long clienteAnteriorId,
+        Long clienteNuevoId,
+        String observacionesAnteriores,
+        String observacionesNuevas
 ) {
 }

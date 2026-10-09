@@ -20,7 +20,9 @@ class GastroreservaBackend1ApplicationTests {
     @Test
     void appliesAllDatabaseMigrations() {
         assertThat(flyway.info().current()).isNotNull();
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("5");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("9");
+        assertThat(flyway.info().pending()).isEmpty();
+        assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
     }
 
 }

@@ -1,6 +1,5 @@
 @baseUrl = http://localhost:8080
-@clientEmail = nicorojasp0606@gmail.com
-@clientPassword = hansolito666
+# Elegir Run with: local y configurar http-client.private.env.json (ver el .example).
 
 ### Iniciar sesión como cliente y guardar su JWT
 POST {{baseUrl}}/api/auth/login
@@ -27,8 +26,8 @@ Authorization: Bearer {{client_token}}
 Content-Type: application/json
 
 {
-  "nombre": "Nicolas Rojas",
-  "telefono": "+591 68809234"
+  "nombre": "Cliente actualizado",
+  "telefono": "70000001"
 }
 
 ### Listar clientes activos por nombre/correo (ADMINISTRADOR o HOST)

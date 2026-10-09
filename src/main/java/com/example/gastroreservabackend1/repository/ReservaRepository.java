@@ -17,6 +17,27 @@ import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Long>, JpaSpecificationExecutor<Reserva> {
 
+    interface ConteoEstado {
+        LocalDate getFecha();
+        Long getTurnoId();
+        String getTurnoNombre();
+        Integer getCapacidad();
+        EstadoReserva getEstado();
+        Long getReservas();
+        Long getPersonas();
+    }
+
+    @Query("""
+            select r.fecha as fecha, t.id as turnoId, t.nombre as turnoNombre,
+                   t.capacidadMaxima as capacidad, r.estado as estado,
+                   count(r) as reservas, sum(r.cantidadPersonas) as personas
+            from Reserva r join r.turno t
+            where r.fecha between :desde and :hasta
+            group by r.fecha, t.id, t.nombre, t.capacidadMaxima, r.estado
+            order by r.fecha, t.id
+            """)
+    List<ConteoEstado> contarPorFechaTurnoEstado(@Param("desde") LocalDate desde, @Param("hasta") LocalDate hasta);
+
     Optional<Reserva> findByIdAndClienteUsuarioEmailIgnoreCase(Long id, String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

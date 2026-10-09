@@ -1,109 +1,160 @@
 # PA-03 GastroReserva — estado de cobertura
 
-Diagnóstico inicial: **2026-08-15**. Esta matriz compara el repositorio actual con el enunciado oficial PA-03. Los estados significan: **completo** (implementado y verificado en el alcance actual), **parcial** (existe una base insuficiente), **ausente** (no existe implementación) y **bloqueado** (no puede verificarse localmente por una dependencia externa).
+Última revisión: **2026-10-09**. Esta matriz distingue **backend principal** de **proyecto completo**. El alcance funcional del backend está implementado y verificado; no se marca como terminada una experiencia web/móvil por existir su API.
 
-## Línea base e infraestructura
+Por decisión del usuario, **Docker, GitHub Actions, despliegue e IA se dejan para el final**. El 2026-10-09 se autorizó compartir el código actualizado de backend y frontend en el repositorio GitHub existente. Compartir código no equivale a desplegar la aplicación ni a implementar CI.
 
-| Área | Estado | Evidencia / brecha |
+## Backend principal
+
+| Área | Estado | Evidencia |
 |---|---|---|
-| Java 21 | Parcial | `pom.xml` e IntelliJ usan Java 21 y Temurin 21 está instalado; el `PATH` global todavía selecciona Java 8. |
-| Spring Boot | Parcial | Backend Spring Boot 4.1.0 con salud, usuarios/auth, clientes, zonas, mesas, turnos, disponibilidad, reservas, check-in y reasignación; faltan los demás módulos. |
-| PostgreSQL | Completo | Conexión real verificada manualmente con zonas y mesas; configuración externa sin credenciales versionadas. |
-| Migraciones | Parcial | Flyway V1 a V5 cubre usuarios, clientes, zonas, mesas, turnos, reservas e historial ampliado para check-in/reasignación; faltan las tablas del resto del dominio. |
-| Autenticación y roles | Parcial | Registro con perfil `Cliente`, BCrypt, JWT y roles vigentes aplicados al backend; faltan las experiencias web/móvil. |
-| Pruebas | Parcial | 39 pruebas cubren contexto, migraciones, controladores, servicios, RN-01 a RN-03, RN-08, JWT y permisos; faltan pedidos y clientes finales. |
-| React + TypeScript web | Ausente | No existe aplicación web. |
-| React Native + TypeScript | Ausente | No existe aplicación móvil. |
-| Docker / Compose | Bloqueado | No hay archivos Docker y el comando `docker` no está instalado en este equipo. |
-| GitHub Actions | Ausente | No existe `.github/workflows`. |
-| Git | Bloqueado | La carpeta abierta no contiene `.git`; no hay rama, estado ni historial que inspeccionar. |
-| Node / npm | Bloqueado | No están instalados o disponibles en `PATH`; será necesario para web y móvil. |
-| README / variables | Completo | `README.md` y `.env.example` documentan el backend actual sin almacenar secretos. |
-| Documentación Parcial 1 | Completo | Visión, actores, RF/RNF, RN, casos/mapa, DER/diccionario, arquitectura y backlog están indexados en `docs/README.md`. |
+| Java 21 / Spring Boot | Verificado | Compilación y empaquetado con Temurin 21; el PATH global puede requerir activar este JDK. |
+| PostgreSQL / Flyway | Verificado en instancia temporal | V1–V9 desde cero, Hibernate validate y actualización V8→V9 conservando reservas/historial. Sin reescribir migraciones previas. |
+| Usuarios / roles / clientes | Implementado | Registro, JWT, BCrypt, rol y actividad vigentes, DTO, perfil propio y administración. DELETE cliente con baja lógica/reactivación, preservando cuenta y reservas. GET /auth/me para frontend. |
+| Zonas / mesas / turnos | Implementado | Catálogos, filtros, permisos y capacidades. Catálogos activos de disponibilidad accesibles al cliente. |
+| Reservas / disponibilidad | Implementado | Reserva propia/operativa, capacidad, solapamiento, cancelación, estados, check-in, reasignación de mesa y corrección auditada de cliente/observaciones sólo SOLICITADA. |
+| Carta | Implementado | Catálogo administrativo y sólo productos disponibles para consulta de clientes. |
+| Mesa abierta | Implementado | Atención sin reserva, intervalo previsto, capacidad, protección ante conflicto y cierre explícito. |
+| Pedidos / ítems / atención | Implementado | Origen único habilitado, responsable, precio/nombre histórico, total decimal, transiciones y auditoría. |
+| Finalización | Implementado | No cierra visita con pedido pendiente; libera mesa después de cierre/cancelación de pedido. |
+| Feedback | Implementado | Una opinión por reserva propia finalizada, puntuación 1–5, privacidad y consulta administrativa. |
+| Reportes | Implementado | Ocupación actual y reservas/no-show por rango y turno; fórmulas documentadas y probadas. |
+| Notificaciones | API de consulta implementada | Eventos de reservas propias por cursor, sin notas internas. No hay push ni experiencia móvil todavía. |
+| Integración frontend | Parcial conectada | Proyecto web separado: login mínimo, CRUD de clientes, mesas de consulta y Cliente 1:N Reserva: alta, filtros, detalle/historial, corrección limitada y cancelación. Guías 08–09 organizan hooks/componentes/filtros/páginas/modales. Guía 10 agrega dashboard básico derivado, ErrorBoundary, Vitest y preparación de build/despliegue. El resto de experiencias web/móvil y publicación sigue pendiente. |
+| Guía y demostración | Disponible | README, docs/09-backend-handoff.md, recorrido-backend.http y mesas-abiertas.http. |
 
-## Alcance funcional y modelo mínimo
+## Reglas y trazabilidad
 
-| Módulo / concepto | Estado | Evidencia / brecha |
+| Regla | Cobertura backend | Pruebas |
 |---|---|---|
-| Clientes / `Cliente` | Parcial | Modelo separado de seguridad, persistencia, perfil propio, filtros, creación/actualización, vinculación por correo e integración con reservas; falta consumo web/móvil. |
-| Usuarios y roles | Parcial | Usuario, cuatro roles, registro, login, administración y permisos backend; las cuentas cliente quedan vinculadas con `Cliente`, pero faltan flujos web/móvil. |
-| Zonas / `Zona` | Parcial | DTO, servicio, validación, filtros, GET/POST/PUT, errores y permisos cubiertos; falta consumo web/móvil. |
-| Mesas / `Mesa` | Parcial | DTO, servicio, relación con zona, filtros, GET/POST/PUT, permisos y estados operativos `DISPONIBLE/OCUPADA` integrados con check-in; faltan clientes web/móvil. |
-| Turnos / `Turno` | Parcial | Modelo, horarios incluso nocturnos, capacidad, estado, filtros, GET/POST/PUT, permisos e integración con disponibilidad/reservas; falta consumo web/móvil. |
-| Reservas / `Reserva` | Parcial | Disponibilidad, alta propia/operativa, agenda, capacidad, intervalos, estados, cancelación, check-in, reasignación y prevención de solapamientos implementados; faltan clientes web/móvil. |
-| `HistorialReserva` | Parcial | Creación, transición, check-in y reasignación registran tipo, estados, mesa anterior/nueva cuando corresponde, motivo, fecha y usuario; falta consumo web/móvil. |
-| Carta / `ProductoMenu` | Ausente | Sin modelo, disponibilidad ni API. |
-| Pedidos / `Pedido` | Ausente | Sin modelo, total operativo ni API. |
-| `ItemPedido` | Ausente | Sin precio histórico. |
-| `EstadoPedido` / atención | Ausente | Sin catálogo/transiciones. |
-| `Feedback` | Ausente | Sin restricción posterior a visita. |
-| Panel y reportes | Ausente | Sin indicadores de ocupación/no-show. |
+| RN-01 capacidad mesa/turno | Completa | Límites y dos altas concurrentes en mesas distintas, sin exceder capacidad. |
+| RN-02 no solapar mesas | Completa | Intervalos de reservas y aperturas; carrera de reservas sobre una misma mesa. |
+| RN-03 estados de reserva | Completa | Transiciones válidas, estados terminales y check-in específico. |
+| RN-04 habilitación de pedido | Completa | Sólo SENTADA o apertura vigente, origen exclusivo y un pedido por visita; duplicados concurrentes. |
+| RN-05 precio histórico | Completa | Copia al agregar, cambios posteriores no alteran ítems; agregados simultáneos sin pérdida. |
+| RN-06 total operativo | Completa | BigDecimal, cantidades y totales exactos; sin pagos ni facturación. |
+| RN-07 feedback posterior | Completa | Propiedad, FINALIZADA, validación y unicidad incluso con solicitudes simultáneas. |
+| RN-08 reasignación trazable | Completa | Mesa anterior/nueva, motivo, actor y fecha; pedido sigue asociado a la visita. |
 
-## Reglas de negocio
-
-| Regla | Estado | Brecha |
+| Requisito / historia | Backend | Pendiente fuera del backend |
 |---|---|---|
-| RN-01 capacidad de mesa y turno | Completo | Creación y disponibilidad validan capacidad individual y suma del turno, con bloqueo pesimista y pruebas de error/éxito. |
-| RN-02 evitar solapamientos | Completo | Los intervalos bloqueantes de una misma mesa no pueden cruzarse; turnos nocturnos y liberación por cancelación están probados. |
-| RN-03 estados de reserva | Completo | Enum contractual y máquina de estados con transiciones válidas, finales inmutables, auditoría y pruebas. |
-| RN-04 pedido sólo para reserva sentada o mesa abierta | Ausente | No existe pedido ni apertura de mesa. |
-| RN-05 precio histórico de ítems | Ausente | No existe `ItemPedido`. |
-| RN-06 sólo total operativo | Ausente | No existe pedido; se mantiene explícitamente fuera del alcance fiscal. |
-| RN-07 feedback tras finalizar | Ausente | No existen visita finalizada ni feedback. |
-| RN-08 trazabilidad de reasignación | Completo | Check-in y reasignación registran reserva, mesa anterior/nueva, motivo, actor y fecha; validan actividad, estado operativo, capacidad y solapamiento con bloqueo transaccional. |
+| RF-01 / HU-01 | Autenticación, permisos y sesión actual verificados. | Login web mínimo conectado; gestión completa de sesión y móvil pendientes. |
+| RF-02 a RF-04 | Filtros, validación y auditoría de reservas/pedidos. | Carga/vacío/error, búsqueda y filtros combinados, paginación local de Clientes/Reservas y detalle/historial disponibles; otras interfaces pendientes. |
+| RF-05 a RF-09 / HU-02 a HU-07, HU-13 a HU-15 | Clientes, salón, turnos, reserva y check-in. | CRUD web de clientes y gestión administrativa limitada de reservas conectados (guía 07); check-in, autoservicio y resto de interfaces pendientes. |
+| RF-10 / HU-08, HU-16 | Carta/productos disponibles. | Pantallas de catálogo/carta. |
+| RF-11, RF-18 / HU-09, HU-10 | Pedido, ítems y total histórico. | Pantalla de pedido. |
+| RF-12 / HU-11, HU-12 | Atención/finalización protegida y auditada. | Experiencia operativa. |
+| RF-13 / HU-17 | Opiniones autorizadas, persistidas sin IA. | Formulario y consulta visual. |
+| RF-14, RF-20 / HU-18 | Indicadores de ocupación/no-show. | Panel web parcial: guía 10 muestra totales de clientes/reservas y estados, no consume aún los reportes de ocupación/no-show ni sus filtros. |
+| RF-15, RF-16 | Capacidad y solapamiento, con evidencia concurrente. | Mostrar resultados al usuario. |
+| RF-17 | Check-in/reasignación. | Interfaz host. |
+| RF-19 | API de cambios y pedidos del responsable. | React Native del mesero; requisito completo aún parcial. |
+| HU-19 | Consulta privada de eventos disponible. | Notificaciones visibles en móvil; no se implementó push. |
+| HU-20 / RNF-13 | Aplazado, sin llamadas a proveedor. | Puerto/adaptador IA, timeout, fallback y clasificación. |
 
-## Requisitos funcionales RF-01 a RF-20
+## Evidencia y alcance de las pruebas
 
-| ID | Estado | Evidencia / brecha |
-|---|---|---|
-| RF-01 | Parcial | Registro, login JWT, BCrypt y permisos por rol vigente verificados en backend; faltan login/sesión web y móvil. |
-| RF-02 | Parcial | Usuarios, clientes, zonas, mesas, turnos y reservas admiten filtros relevantes y listas vacías; faltan módulos restantes y estados vacíos web/móvil. |
-| RF-03 | Parcial | Bean Validation y errores REST uniformes cubren los módulos actuales; faltan módulos restantes y validación en clientes web/móvil. |
-| RF-04 | Parcial | Transiciones, check-in y reasignaciones registran fecha, usuario, tipo, estados, mesas y motivo; faltan pedidos/atención. |
-| RF-05 | Parcial | Backend de clientes con alta, consulta, actualización, filtros, perfil propio, validación, permisos e integración con reservas; faltan experiencias web/móvil. |
-| RF-06 | Parcial | Zonas y mesas tienen contratos DTO, filtros, consulta, creación, actualización, estados operativos `DISPONIBLE/OCUPADA` y permisos verificados; falta experiencia web/móvil. |
-| RF-07 | Parcial | Backend de turnos con consulta, filtros, creación, actualización, capacidad, estado, validación, permisos e integración con reservas; falta consumo web/móvil. |
-| RF-08 | Parcial | Backend de disponibilidad, alta, consulta, filtros, cancelación, estados, check-in, reasignación e historial implementado; faltan experiencias web/móvil. |
-| RF-09 | Parcial | Check-in backend protegido pasa sólo `CONFIRMADA` a `SENTADA`, valida/asigna mesa, ocupa el recurso y audita; falta UI. |
-| RF-10 | Ausente | Carta básica inexistente. |
-| RF-11 | Ausente | Pedidos inexistentes. |
-| RF-12 | Ausente | Estados de atención inexistentes. |
-| RF-13 | Ausente | Feedback inexistente. |
-| RF-14 | Ausente | Panel y reportes inexistentes. |
-| RF-15 | Completo | El backend rechaza reservas sin capacidad de mesa o turno y lo demuestra con pruebas. |
-| RF-16 | Completo | El backend rechaza reservas solapadas y libera el intervalo al cancelar. |
-| RF-17 | Parcial | Asignación/reasignación backend valida mesa y registra trazabilidad completa; falta experiencia web de host. |
-| RF-18 | Ausente | Sin pedidos o cálculo de totales. |
-| RF-19 | Ausente | Sin móvil ni transición de mesero. |
-| RF-20 | Ausente | Sin indicadores de ocupación/no-show. |
+- Guía 10: **79 Node + 19 Vitest/Testing Library** aprobadas, lint/build correctos y recorrido real de frontend compilado en preview contra Spring/PostgreSQL temporal. Dashboard, CRUD/FK, corrección/cancelación/historial, 409, recargas SPA y error de conexión verificados; boundary probado aisladamente. Maven verify con Java 21: **129 H2**, cero fallos y BUILD SUCCESS; sin cambios Java/SQL. Se preparó publicación, no se publicó. Guía y 50 respuestas: `C:/Users/antel/WebstormProjects/gastroreserva1/docs/guia-10.md`; matriz y límites (Network, defensa oral, viewport móvil no aplicado): `docs/evidencias/guia-10/matriz-fullstack.md` de ese frontend.
 
-## Experiencias, API y flujo crítico
+- Guía 09, sólo frontend: **79 pruebas Node, 8 UI React y 12 hooks React/StrictMode** aprobadas; lint/build correctos. Navegador contra API/PostgreSQL temporal: filtros/páginas/vacío, baja y ajuste de última página, reactivación/alta cliente, corrección/cancelación/historial reserva, modal/teclado/foco y responsive. Sin cambios Java/SQL ni Maven nuevo. Guía y 40 respuestas en `C:/Users/antel/WebstormProjects/gastroreserva1/docs/guia-09.md`.
 
-| Área | Estado | Brecha |
-|---|---|---|
-| Experiencia web (H) | Ausente | No hay mapa de mesas, agenda, turnos, check-in, carta, pedidos ni panel. |
-| Experiencia móvil (I) | Ausente | No hay búsqueda, reservas, notificaciones, feedback ni vista de mesero. |
-| Flujo crítico (J) | Parcial | Ya funciona `cliente consulta disponibilidad → reserva → recepción confirma y realiza check-in/asignación`; faltan pedido, finalización completa y feedback en las experiencias finales. |
-| API REST (K) | Parcial | Auth/login, usuarios, clientes, zonas, mesas, turnos, reservas, check-in y reasignación con DTO, búsquedas, transiciones, permisos y errores; faltan recursos restantes. |
-| Criterios globales (L) | Parcial | Capacidad y solapamientos tienen evidencia automatizada de éxito/error; faltan los demás criterios globales. |
-| Spring AI acotado (M) | Ausente | Sin puerto, proveedor, timeout ni fallback. |
+- Guía 08, sólo frontend: **67 pruebas Node y 12 pruebas de hooks React/StrictMode** aprobadas, lint/build correctos. Navegador contra API/PostgreSQL temporal: cancelación de GET, error HTTP controlado/reintento y CRUD conservado. Sin cambios Java/SQL, por lo que no se reejecutó Maven; las 129 pruebas siguientes son evidencia de guía 07. Detalle y 40 respuestas en `C:/Users/antel/WebstormProjects/gastroreserva1/docs/guia-08.md`.
 
-## Diferencias relevantes encontradas
+- Último incremento guía 07: **129 pruebas aprobadas en PostgreSQL 17 temporal**, cero fallos/errores/omitidas y `BUILD SUCCESS`, incluida toda la suite anterior. H2 pasó 128 pruebas antes de añadir el caso adicional de actualización V8→V9. Frontend: 58 pruebas, lint y build correctos, más recorrido de navegador con otra base aislada.
+- La suite incorpora pruebas HTTP con JWT real de pedidos, aperturas, feedback, reportes, notificaciones, sesión y CORS.
+- Comprueba 400/401/403/404/409/422, datos ajenos, responsables y roles vigentes.
+- Las carreras usan dos hilos y transacciones confirmadas, no una única transacción simulada; esquema exclusivo de pruebas.
+- Se comprueba migración limpia V1–V9, actualización V5→V9 y actualización V8→V9 con reserva/historial anteriores conservados.
+- La verificación PostgreSQL usa binarios locales en una instancia efímera separada, sin Docker ni claves del usuario. El script siempre solicita apagar esa instancia al terminar.
+- No se ejecutaron los nuevos ejemplos manuales contra la base habitual ni se reinició la aplicación del usuario. Las migraciones pendientes, incluida V9, se aplicarán al siguiente arranque; hacer respaldo si los datos son importantes.
+- No se garantiza rendimiento bajo cualquier carga; los casos concurrentes son pruebas de invariantes, no un benchmark productivo.
 
-1. La implementación heredada exponía entidades JPA; esto ya fue corregido para clientes, zonas, mesas y turnos mediante DTO y servicios.
-2. Hibernate usaba `ddl-auto: update` sin migraciones; el incremento de base lo reemplazó por Flyway + validación.
-3. No existe repositorio Git en la carpeta, por lo que todavía no hay trazabilidad por commits o ramas.
-4. El entorno global usa Java 8 y no dispone de Node/npm ni Docker, aunque JDK 21 sí está instalado para IntelliJ.
+## Pendientes del proyecto completo
 
-## Incrementos recomendados
+| Área | Estado |
+|---|---|
+| React + TypeScript web | Guías 01–10 adaptadas: CRUD clientes, gestión limitada de reservas, hooks/UI/filtros/páginas/modales, dashboard básico, ErrorBoundary y pruebas. Pendientes autoservicio, atención y demás experiencias del contrato; los indicadores básicos no completan reportes. Swagger UI no instalado; Network/defensa oral y nueva revisión visual móvil del dashboard pendientes. No equivale al 100% del proyecto. |
+| React Native + TypeScript | Aplicación pendiente. |
+| Docker / Compose | Aplazado a pedido del usuario. |
+| Repositorio compartido / GitHub Actions | Entrega conjunta del backend en raíz y React en frontend/, con INICIO-EQUIPO.md y secretos excluidos. GitHub Actions y despliegue siguen pendientes. |
+| Spring AI | Aplazado; feedback y reportes funcionan sin proveedor. |
+| Colección Postman/Bruno/Insomnia de entrega | Pendiente si el docente exige ese formato; existen ejemplos IntelliJ y pruebas automatizadas. |
 
-1. Implementar carta básica y continuar con mesa abierta, pedidos y precios históricos para RN-04 a RN-06.
-2. Completar atención/finalización, feedback y reportes antes de cerrar los flujos finales.
-3. Construir las experiencias web/móvil sobre contratos protegidos y estables.
+## Próximo incremento
 
-La matriz debe actualizarse después de cada incremento y nunca se debe marcar un requisito como completo sin pruebas o evidencia equivalente.
+Con las diez guías adaptadas, elegir el próximo recorrido del producto sobre [09-backend-handoff.md](09-backend-handoff.md): autoservicio del cliente con disponibilidad/reserva, o atención del restaurante. Revisar también el dashboard en móvil y practicar la demostración. Despliegue/Docker/CI/IA siguen aplazados. No confundir “backend principal cerrado” o “diez guías implementadas” con “PA-03 completo”.
 
 ## Registro de verificación
+
+### 2026-10-09 — preparación de entrega conjunta al grupo
+
+- Backend existente en raíz y copia del frontend verificado en frontend/, sin mover ni borrar el original de WebStorm. README e INICIO-EQUIPO.md explican dependencias, JDK 21, base propia, variables privadas, administrador local y datos iniciales.
+- Los archivos HTTP compartidos usan variables del entorno privado de IntelliJ. Se conservaron los originales como auth.local.http y clientes.local.http, excluidos por Git, y se añadió una plantilla privada vacía. No se cambiaron contraseñas del sistema ni datos de PostgreSQL.
+- No se incluyen node_modules/dist/target/IDE ni la base del autor. Los archivos tmp ya presentes en el historial anterior se preservan, pero se ignoran nuevas incorporaciones de esa carpeta. Sin reescribir historial ni migraciones aplicadas.
+- Se detectó una credencial administrativa en un commit previo; quitarla del ejemplo actual no la borra de versiones anteriores. Se advirtió al usuario que cambie esa contraseña si sigue vigente. La entrega no habilita GitHub Actions, Docker ni hosting.
+- Verificación de la copia entregable: instalación limpia con npm ci, 79 Node + 19 Vitest, lint/build correctos; backend Maven verify con Java 21, 129 pruebas H2 y BUILD SUCCESS. Escaneo de archivos candidatos sin coincidencias de las credenciales privadas conocidas ni patrones de tokens/claves; no sustituye auditoría exhaustiva del historial.
+
+### 2026-10-09 — frontend web, guía 10: integración final
+
+- Dashboard básico derivado de GET autorizados, MetricCard genérico, carga/vacío/error/reintento y seis estados reales. RF-02/RNF-09; RF-14/RF-20/HU-18 web siguen parciales.
+- ErrorBoundary raíz y demostración aislada; 19 Vitest con jsdom/Testing Library sumadas a las 79 Node. Lint/build correctos; npm audit sin vulnerabilidades reportadas. Verificación Maven Java 21: 129 H2, BUILD SUCCESS.
+- Preview con API/PostgreSQL temporal: F01–F12 adaptados, relación y auditoría preservadas, 409 real y error de red visible. Sin modificar Java, SQL, permisos ni datos habituales. Servicios temporales apagados y pruebas conservadas.
+- `.env.production` sólo para build local, plantilla SPA y procedimiento HTTPS/CORS sin publicación. Documentación y 50 respuestas en el frontend de WebStorm; Network/defensa oral y comprobación móvil no certificadas. Docker/GitHub/IA aplazados.
+
+### 2026-10-09 — frontend web, guía 09: búsqueda, filtros y modales
+
+- RF-02/RNF-09, preservando RF-05/HU-06 y RF-08/HU-15: ocho componentes UI independientes del dominio, búsquedas adaptadas, filtros AND y campos OR, paginación 5/10/20 posterior al filtrado, límites/reset y EmptyState. Reserva conserva sus seis estados; no se agregaron vehículos, documento ni activo a su modelo.
+- ConfirmDialog/Modal nativos, selección pendiente, foco inicial seguro y restauración con fallback, Escape/cancelar sin HTTP, bloqueo de doble envío/cierre durante escritura y errores visibles. Baja lógica del cliente y cancelación de reserva mantienen los contratos existentes. RN-01/RN-02/RN-03/RN-08 intactas.
+- 79 pruebas Node, 8 UI React y 12 hooks React aprobadas; lint/build correctos. Recorrido real de navegador en base temporal: filtro combinado y páginas, baja de última fila con ajuste 3→2, reactivación y alta cliente, corrección de titular, cancelación con motivo e historial de reserva y modal a 390 px. Consola sin errores capturados.
+- Documentación y 40 respuestas en `C:/Users/antel/WebstormProjects/gastroreserva1/docs/guia-09.md`, evidencias en `docs/evidencias/guia-09` del frontend. Defensa oral no certificada. El desarrollo queda en el proyecto de WebStorm; este repositorio sólo actualiza documentación en este incremento.
+- Sin cambios Java/SQL/REST/permisos/dependencias/.env. No se reejecutó Maven ni se tocaron datos habituales. Servicios de prueba apagados al finalizar, archivos temporales conservados. Docker/GitHub/IA siguen aplazados; guía 10 pendiente de recibir.
+
+### 2026-10-08 — frontend web, guía 07: Cliente 1:N Reserva
+
+- Adaptación de RF-02/RF-03/RF-04/RF-08, HU-06/HU-15 y RNF-05/RNF-09, preservando RN-01/RN-02/RN-03/RN-08. No se copiaron vehículos, placas ni eliminación física al dominio de reservas.
+- Web en `C:/Users/antel/WebstormProjects/gastroreserva1`: carga paralela autorizada, Map por cliente, filtro local, alta, GET de detalle/historial, formulario de corrección y cancelación confirmada; sin GET por fila ni cambios locales ficticios ante error. MESERO usa cliente proyectado en agenda sin consultar el catálogo protegido.
+- Nuevo PUT `/api/reservas/{id}/datos-cliente` para ADMINISTRADOR/HOST, sólo SOLICITADA, cliente activo y motivo. `version` en DTO protege contra edición obsoleta (409); repetición idéntica no agrega eventos. Programación, capacidad y creador se conservan. No habilita edición irrestricta, reprogramación, DELETE físico ni reactivación de CANCELADA.
+- V9 añade historial de cliente/observaciones anteriores y nuevos, FKs/checks/índices. V1–V8 intactas. Pruebas de actualización V8→V9 verifican conservación de reserva y evento existentes; permiso/propiedad/estado/errores comprobados por HTTP.
+- Frontend: **58 pruebas**, lint y build correctos. Backend: verify H2 de 128 pruebas antes del último caso de migración; suite final completa de **129 pruebas en PostgreSQL 17**, cero fallos/errores/omitidas, BUILD SUCCESS. Comando: `scripts/verify-postgres.ps1 -MavenRepository C:/Users/antel/.m2/repository -Offline`, JDK 21. Reportes conservados en `C:/Users/antel/AppData/Local/Temp/gastro-pg-test-3fc09e51a6f147098a54b33cadac42f5`.
+- Navegador + API 18082/PostgreSQL aislados: relación 2:1 de tres reservas iniciales, filtros/vacío sin HTTP adicional, alta 201, edición descartada sin PUT, corrección 200 sin duplicar reserva, auditoría antes/después, cancelación 200 manteniendo fila, conflicto 409 conservando texto y GET de persistencia. Evidencias y 40 respuestas adaptadas en `docs/guia-07.md` del frontend. No son capturas de DevTools Network; éstas y defensa oral quedan para el estudiante.
+- Sin modificar base habitual, credenciales, dependencias, Docker, IA ni GitHub. Se requiere reiniciar el backend del usuario para aplicar V9 y cargar el contrato. Guías 08–10 pendientes, no se marca toda la web terminada.
+
+### 2026-10-08 — frontend web, guía 06
+
+- RF-02/RF-03/RF-05, HU-06 y RNF-09: CRUD administrativo de clientes en el proyecto web separado. GET por id antes de editar, único formulario POST/PUT, cancelación sin mutación, errores conservando campos, sustitución por id, DELETE confirmado y filtros Activos/Inactivos/Todos con reactivación.
+- Se agregó DELETE /api/clientes/{id} → 204 sin body: baja lógica transaccional, idempotente, sin borrar reservas/historial ni desactivar la cuenta vinculada. PUT permite reactivar. No se alteraron RN-01 a RN-08; nuevas reservas siguen requiriendo cliente activo, capacidad y ausencia de solapamientos.
+- Pruebas HTTP nuevas: ADMINISTRADOR/HOST, rechazo 401/403, 400/404/409, idempotencia PUT/DELETE, conservación de reserva/historial/usuario y rechazo de nueva reserva para un cliente inactivo.
+- Verificación final JDK 21 / Maven offline verify: **118 pruebas H2, 0 fallos, 0 errores, 0 omitidas, BUILD SUCCESS**. Frontend: **44 pruebas**, lint y build correctos.
+- Navegador → Spring Boot 18081 → PostgreSQL 17 temporal: alta 201, detalle 200, PUT 200/409, cancelación, DELETE 204, reserva conservada, exclusión de inactivos y reactivación. GET/DELETE 404 reales se demostraron retirando únicamente un perfil ficticio sin reservas de esa base aislada. No se usó ni alteró la base habitual.
+- Documentación frontend en docs/guia-06.md: adaptación explícita a baja lógica, contratos, recorrido, capturas UI y 35 respuestas. No se afirma evidencia DevTools Network ni Swagger UI; defensa oral/capturas Network pendientes del estudiante. La suite completa de 118 no se repitió contra PostgreSQL; allí se ejecutó el recorrido HTTP.
+- Sin migraciones nuevas (activo ya existía), cambios de permisos/CORS, dependencias, commits, push, Docker ni IA. Servicios de prueba apagados al finalizar; logs/datos temporales conservados.
+
+### 2026-10-08 — frontend web, guía 05
+
+- Proyecto separado en `C:/Users/antel/WebstormProjects/gastroreserva1`: URL pública VITE_API_URL, apiClient con fetch/JSON/response.ok, services, GET reales y POST cliente/reserva operativa. Adaptación Cliente 1:N Reserva con catálogos reales e IDs numéricos.
+- RF-01/RF-02/RF-03/RF-05/RF-08 y RNF-09: login JWT en memoria, guardas por rol, loading/error/vacío/submitting, errores por campo, bloqueo de duplicados, respuesta del servidor incorporada a tabla y campos conservados al fallar. RN-01/RN-02/RN-03 siguen en backend; no se agregó autoservicio ni transiciones web.
+- Se retiraron del formulario conectado los ejercicios locales no contractuales de guía 04. Mocks conservados sólo como referencia/pruebas; no son fallback de API.
+- Se detectó que una ruta desconocida autenticada devolvía 500. ApiExceptionHandler ahora responde 404 ROUTE_NOT_FOUND para NoResourceFoundException/NoHandlerFoundException, sin alterar el 401 anónimo. Prueba de regresión agregada.
+- Verificación final backend con JDK 21 y Maven offline: **112 pruebas H2, 0 fallos, 0 errores, 0 omitidas, BUILD SUCCESS**. Frontend: **32 pruebas aprobadas**, lint y build correctos.
+- Recorrido navegador → Spring Boot → PostgreSQL 17 temporal: altas 201 de ambas entidades, GET persistidos incluso tras reiniciar API, 409/422, permisos mesero, CORS permitido/rechazado, body 400, ruta 404 y conexión caída. No se alteró el PostgreSQL habitual ni se usaron credenciales reales; no se repitió la suite completa de 112 casos contra PostgreSQL.
+- Evidencias/contratos/30 respuestas en `docs/guia-05.md` del frontend. Swagger UI no está instalado: contraste realizado con Controller/DTO y HTTP real. Capturas DevTools Network y defensa oral quedan explícitamente pendientes; no se presentan capturas de UI como evidencia de esa pestaña.
+- No hubo nuevas migraciones, dependencias, cambios de permisos/CORS, commits, push, Docker ni IA.
+
+### 2026-10-08 — frontend web, guía 04
+
+- Proyecto separado en `C:/Users/antel/WebstormProjects/gastroreserva1`: formularios controlados de clientes y reservas, tipos de estado/objeto de envío separados, validadores puros, errores por campo, Limpiar, contador y espera simulada de 500 ms con bloqueo/cancelación.
+- Adaptación de RF-03/RF-05/RF-08 y RNF-09 sólo a nivel visual. Select de clientes activos y capacidad individual local; disponibilidad, solapamiento, permisos y estados siguen bajo autoridad backend. No se crea ningún registro ni se alteran las tablas mock.
+- Documento/dirección/checkbox y referencia normalizada cumplen la práctica docente como datos locales explícitamente excluidos de los contratos REST; no se ampliaron entidades ni migraciones. La integración futura deberá separar estos ejercicios del formulario real.
+- Frontend: build/lint correctos, 15 pruebas unitarias aprobadas; recorrido manual de errores/éxito, normalización, IDs, limpieza, bloqueo, cancelación y pantallas de 1366/390/320 px. Detalle y evidencias en `docs/guia-04.md` del frontend.
+- No se cambió código Java, contratos, permisos ni PostgreSQL; no se reejecutó Maven. Guías 05–10 pendientes de recibir; Docker, GitHub e IA siguen aplazados.
+
+### 2026-10-08 — frontend web, guías 01–03
+
+- Proyecto separado en `C:/Users/antel/WebstormProjects/gastroreserva1`; su documentación y evidencia están en `docs/guia-03.md` y `docs/PA-03-status.md` de esa carpeta.
+- Guía 03 adaptada a Cliente 1:N Reserva: interfaces, arreglos tipados, tablas con props/map/key/find, estados, estadísticas y vacíos. 6 clientes y 8 reservas simuladas; sin consumir API ni alterar PostgreSQL.
+- Trazabilidad parcial de RF-02/RF-05/RF-08 y RNF-09: representación visual. Estados coherentes con RN-01/RN-03, sin sustituir validaciones backend ni marcar gestión real completa.
+- Build y lint del frontend correctos; navegación, listas, vacío, relación ausente, cambio de una fila y responsive verificados. Prueba intencional de TS2322 ejecutada y revertida.
+- No se modificó código Java ni migraciones en este incremento; no se reejecutó Maven. Formularios, autenticación web, integración HTTP, móvil e infraestructura siguen pendientes.
 
 ### 2026-08-15 — incremento de base técnica
 
@@ -171,3 +222,32 @@ La matriz debe actualizarse después de cada incremento y nunca se debe marcar u
 - Se agregó una prueba que rechaza motivos vacíos y comprueba que no cambien ni la mesa ni el historial.
 - Se corrigieron contradicciones documentales sobre RN-08 y los estados operativos de mesa.
 - Verificación final: `.\mvnw.cmd verify` finalizó con **39 pruebas, 0 fallos y 0 errores** y generó el JAR ejecutable.
+
+### 2026-09-30 — carta básica y productos del menú
+
+- Alcance: RF-10, HU-08 y HU-16, con filtros RF-02, validaciones RF-03 y DTO/permisos. La carta es la base del futuro pedido; no se marca RN-04, RN-05 ni RN-06 como implementada.
+- Flyway V6 agrega `productos_menu`, precio `NUMERIC(12,2)`, disponibilidad, marcas temporales y nombre normalizado único. No se reescribieron V1–V5.
+- `/api/productos-menu` permite al administrador crear, consultar, filtrar y actualizar productos. `/api/carta` permite a todos los roles autenticados consultar exclusivamente productos disponibles, incluyendo la consulta por id.
+- Se rechazan nombres vacíos/duplicados, precios no positivos, exceso de precisión y campos inválidos. La baja es lógica mediante `disponible=false`, sin eliminar identidades.
+- Se agregaron 27 pruebas: servicio/persistencia, validación directa, unicidad en base, filtros literales, disponibilidad, JWT administrativo, roles y respuestas 400/401/403/404/409. La prueba de migraciones se actualizó a V6 y verifica que no haya pendientes ni fallos de validación.
+- Verificación final con JDK 21: `.\mvnw.cmd '-Dmaven.repo.local=C:/Users/antel/.m2/repository' -o clean verify` finalizó con **66 pruebas, 0 fallos, 0 errores y 0 omitidas**, `BUILD SUCCESS` y JAR ejecutable.
+- Se usó la caché local de Maven explícita porque el entorno restringido intentaba usar `C:/.m2/repository`; la compilación necesitó acceso normal a esa caché. No se cambió la configuración del proyecto para resolverlo.
+- Las pruebas usan H2 temporal en modo PostgreSQL. No se ejecutó V6 sobre el PostgreSQL del usuario ni se reinició su aplicación; se aplicará al próximo arranque. La validación en PostgreSQL real queda pendiente.
+- `carta.http` contiene el recorrido manual, guarda el id automáticamente e incluye errores esperados. Los cambios previos del usuario en `auth.http` y `clientes.http` se preservaron; no se agregaron credenciales, commits ni publicaciones.
+- Se actualizaron API, permisos, diccionario/DER, requisitos y backlog; se corrigieron notas obsoletas sobre la existencia de Git y Node. No se modificó el frontend.
+- Siguiente incremento: mesa abierta y pedidos con ítems, precio histórico y total operativo (RN-04 a RN-06); después estados de atención, feedback y reportes.
+
+### 2026-10-08 — cierre del backend principal
+
+- Se verificó y consolidó el incremento iniciado previamente: V7 para aperturas/pedidos/ítems/auditoría, V8 para feedback; reglas RN-04 a RN-07 y soporte de RF-11 a RF-14, RF-18 a RF-20 y HU-19.
+- Se integraron permisos por rol y responsable, bloqueo transaccional del origen, estados terminales, precios históricos y protección de finalización con pedidos pendientes. Reserva/mesa abierta/pedido quedan coordinados sin agregar pagos ni facturas.
+- Sesión actual, opciones de reserva para el cliente, CORS y zona horaria configurables preparan el consumo desde React y React Native.
+- Se corrigió la consulta del reporte de ocupación: totales y ocupadas se obtienen en un mismo snapshot SQL en vez de dos lecturas independientes.
+- `BackendPrincipalHttpIntegrationTest`: 11 escenarios con JWT real y HTTP, incluidos flujo completo, errores, acceso ajeno, cambio de rol/actividad, responsable y CORS.
+- `ConcurrencyIntegrationTest`: 13 escenarios con dos hilos/transacciones y esquema aislado; capacidad/solapamiento, pedido único, ítems sin pérdida, apertura única, feedback único y pedido contra finalización.
+- `MigrationUpgradeIntegrationTest`: esquema temporal en V5 con dato existente, actualización a V8 y comprobación de conservación/checksums. La prueba habitual comprueba también migraciones desde cero.
+- Comando H2: `.\mvnw.cmd '-Dmaven.repo.local=C:/Users/antel/.m2/repository' -o verify`, Temurin 21. Resultado a las 13:00 (America/La_Paz): **111 pruebas, 0 fallos, 0 errores, 0 omitidas, BUILD SUCCESS**.
+- Comando PostgreSQL: `.\scripts\verify-postgres.ps1 -MavenRepository C:/Users/antel/.m2/repository -Offline`. PostgreSQL 17 temporal, misma suite: **111 pruebas, 0 fallos, 0 errores, 0 omitidas, BUILD SUCCESS** a las 13:03. Instancia apagada correctamente; logs y reportes conservados en la ruta temporal informada por el script.
+- Se actualizaron documentos 01–08, índice, README y matriz; se agregó `docs/09-backend-handoff.md` con contratos, fórmulas y límites explícitos. `recorrido-backend.http` y `mesas-abiertas.http` preparan demostración con ids automáticos. Los `.http` se entregan para ejecución manual; no se ejecutaron sobre los datos del usuario.
+- Se preservaron los cambios anteriores de `auth.http` y `clientes.http`; revisar sus credenciales antes de una publicación futura. Se ignoró `http-client.private.env.json`. No se hicieron commits, push, Docker ni integración IA, y no se modificó el frontend ni el PostgreSQL habitual.
+- **Cierre:** backend principal funcional y verificado para comenzar integración frontend. El proyecto académico completo sigue pendiente de interfaces, móvil, infraestructura e IA aplazadas.

@@ -4,5 +4,6 @@ public enum TipoEventoReserva {
     CREACION,
     CAMBIO_ESTADO,
     CHECK_IN,
-    REASIGNACION
+    REASIGNACION,
+    CORRECCION_CLIENTE
 }

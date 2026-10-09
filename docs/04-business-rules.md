@@ -64,15 +64,15 @@ El paso `CONFIRMADA → SENTADA` sólo puede ejecutarse mediante la operación d
 
 ## RN-04 — Habilitación de pedido
 
-Un pedido sólo puede crearse para una reserva en estado `SENTADA` o para una mesa abierta mediante el futuro proceso operativo correspondiente. No se permitirán pedidos huérfanos ni asociados a reservas solicitadas, confirmadas, finalizadas, canceladas o no-show.
+Un pedido sólo puede crearse para una reserva en estado `SENTADA` o para una mesa abierta mediante el proceso operativo de apertura. No se permitirán pedidos huérfanos ni asociados a reservas solicitadas, confirmadas, finalizadas, canceladas o no-show.
 
-**Criterios de prueba:** éxito para reserva sentada/mesa abierta y rechazo para los demás casos. Estado: **pendiente**.
+**Evidencia:** `PedidoService`, `MesaAbiertaService`, V7 y pruebas de servicio/HTTP/concurrencia. Origen exclusivo, una orden por visita y rechazo de todos los estados no habilitados. Estado: **completo en backend**.
 
 ## RN-05 — Precio histórico
 
 Al agregar un producto a un pedido, `ItemPedido` debe copiar el precio vigente del producto. Cambiar posteriormente el precio de `ProductoMenu` no debe alterar ítems ya registrados.
 
-**Criterios de prueba:** crear ítem, modificar producto y comprobar que el total del pedido conserva el precio original. Estado: **pendiente**.
+**Evidencia:** `ItemPedido` conserva nombre/precio, V7 y pruebas de modificación de catálogo, cantidades y agregados concurrentes. Estado: **completo en backend**.
 
 ## RN-06 — Total operativo, sin alcance fiscal
 
@@ -84,13 +84,13 @@ totalPedido = suma(item.cantidad × item.precioUnitarioHistorico)
 
 No se incluirán contabilidad, facturación fiscal, métodos de pago ni documentos tributarios.
 
-**Criterios de prueba:** múltiples ítems, cantidades y redondeo decimal consistente. Estado: **pendiente**.
+**Evidencia:** total derivado con BigDecimal de los ítems históricos, cantidades 1–999 y pruebas de sumas/edición. Estado: **completo en backend**.
 
 ## RN-07 — Feedback posterior a la visita
 
 El cliente sólo puede registrar feedback cuando su reserva esté `FINALIZADA`. El backend debe comprobar la propiedad de la reserva y rechazar estados previos o finales diferentes.
 
-**Criterios de prueba:** éxito posterior a finalización; rechazo para reserva ajena, sentada, cancelada o no-show. Estado: **pendiente**.
+**Evidencia:** `FeedbackService`, V8, DTO y permisos; sólo reserva propia FINALIZADA, una opinión por reserva, puntuación 1–5 y comentario obligatorio. Unicidad concurrente probada. Estado: **completo en backend**.
 
 ## RN-08 — Reasignación trazable
 
@@ -107,8 +107,8 @@ El historial clasifica eventos de creación, cambio de estado, check-in y reasig
 | RN-01 | Sí | Sí | Sí | Pendiente |
 | RN-02 | Sí | Sí | Sí | Pendiente |
 | RN-03 | Sí | Sí | Sí | Pendiente |
-| RN-04 | Pendiente | Pendiente | Pendiente | Pendiente |
-| RN-05 | Pendiente | Pendiente | Pendiente | Pendiente |
-| RN-06 | Pendiente | Pendiente | Pendiente | Pendiente |
-| RN-07 | Pendiente | Pendiente | Pendiente | Pendiente |
+| RN-04 | Sí | Sí | Ejemplos preparados | Pendiente |
+| RN-05 | Sí | Sí | Ejemplos preparados | Pendiente |
+| RN-06 | Sí | Sí | Ejemplos preparados | Pendiente |
+| RN-07 | Sí | Sí | Ejemplos preparados | Pendiente |
 | RN-08 | Sí | Sí | Pendiente | Pendiente |

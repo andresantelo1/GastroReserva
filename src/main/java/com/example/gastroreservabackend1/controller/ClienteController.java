@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -76,5 +77,12 @@ public class ClienteController {
             @PathVariable @Positive(message = "El id debe ser mayor que cero") Long id,
             @Valid @RequestBody ClienteUpdateRequest request) {
         return clienteService.actualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarCliente(
+            @PathVariable @Positive(message = "El id debe ser mayor que cero") Long id) {
+        clienteService.desactivar(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,0 +1,45 @@
+.ui-button { border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; min-height: 44px; }
+.ui-button--primary { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+.ui-button--primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.ui-button--secondary, .ui-button--ghost { background: var(--color-surface); color: var(--color-primary); }
+.ui-button--ghost { border-color: transparent; }
+.ui-button--secondary:hover:not(:disabled), .ui-button--ghost:hover:not(:disabled) { background: var(--color-subtle); }
+.ui-button--danger { color: var(--color-danger); background: var(--color-danger-bg); border-color: var(--color-danger); }
+.ui-button--danger:hover:not(:disabled) { text-decoration: underline; }
+.ui-button:disabled { opacity: .55; cursor: not-allowed; }
+.ui-button[aria-busy="true"] { cursor: wait; }
+.ui-button:focus-visible, .ui-field :is(input,select):focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.ui-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); min-width: 0; }
+.ui-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; max-width: 100%; }
+.ui-field label { color: var(--color-text); font-weight: 650; font-size: 13px; }
+.ui-field input, .ui-field select { min-width: 0; max-width: 100%; min-height: 44px; padding: var(--space-3); font: inherit; font-size: 14px; background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.ui-field select { width: 100%; }
+.ui-search { flex: 1 1 250px; }
+.ui-toolbar > .ui-field:not(.ui-search) { flex: 1 1 170px; }
+.ui-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.ui-pagination__summary { font-size: 13px; color: var(--color-muted); flex: 1; min-width: 170px; }
+.ui-pagination__actions { display: flex; gap: var(--space-2); }
+.ui-empty { padding: var(--space-6); text-align: center; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: var(--radius-md); }
+.ui-empty h4 { color: var(--color-text); font-size: 17px; }
+.ui-empty p { margin-top: var(--space-2); color: var(--color-muted); line-height: 1.7; }
+.ui-badge { display: inline-flex; padding: var(--space-1) var(--space-2); border-radius: 20px; font-size: 11px; font-weight: 650; white-space: nowrap; }
+.ui-badge--success { color: var(--color-success); background: var(--color-success-bg); }
+.ui-badge--danger { color: var(--color-danger); background: var(--color-danger-bg); }
+.ui-badge--warning { color: var(--color-warning); background: var(--color-warning-bg); }
+.ui-badge--info { color: var(--color-info); background: var(--color-info-bg); }
+.ui-badge--neutral { color: var(--color-muted); background: var(--color-subtle); }
+.ui-modal { position: fixed; inset: 0; margin: auto; width: min(600px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-modal); }
+.ui-modal::backdrop { background: rgb(18 31 22 / 60%); }
+.ui-modal__header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+.ui-modal__header h2 { font: 400 25px/1.3 Georgia, serif; overflow-wrap: anywhere; }
+.ui-modal__header button { flex-shrink: 0; font-size: 22px; }
+.ui-modal p { line-height: 1.7; font-size: 14px; overflow-wrap: anywhere; }
+.ui-modal__actions { display: flex; flex-wrap: wrap; justify-content: end; gap: var(--space-3); margin-top: var(--space-6); }
+.ui-modal .form-field { margin-top: var(--space-4); }
+@media (max-width: 600px) {
+  .ui-toolbar { padding: var(--space-4); }
+  .ui-toolbar > .ui-field { flex-basis: 100%; }
+  .ui-pagination__summary { flex-basis: 100%; }
+  .ui-modal { padding: var(--space-4); }
+  .ui-modal__actions { flex-direction: column; }
+}
